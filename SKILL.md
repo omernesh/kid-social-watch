@@ -1,6 +1,6 @@
 ---
 name: kid-social-watch
-description: Daily social-wellbeing watch for a child's WhatsApp — pull today's activity from Lextrove, flag red flags (grooming, bullying, stranger danger), report trends. Template: no secrets, no PII.
+description: "Daily social-wellbeing watch for a child's WhatsApp — pull today's activity from Lextrove, flag red flags (grooming, bullying, stranger danger), report trends. Template — no secrets, no PII."
 category: devops
 metadata:
   tags: [whatsapp, lextrove, safety, children, monitoring, cron, template]
@@ -26,7 +26,7 @@ This is a **template skill**: every value (child's name, session, JID, delivery 
 | `CHILD_NAME` | `Alex` | Display name — used in the report header and `resolve_entity` |
 | `CHILD_JID` | `972501234567@s.whatsapp.net` | Canonical JID from `resolve_entity` → `identifier` (example, not real) |
 | `LEX_SESSION` | `alex_primary` | The Lextrove session for the child's line — discover via `list_sessions`, match by phone number (session names can be masked!) |
-| `PARENT_LANGUAGE` | `he` / `en` | Report language |
+| `PARENT_LANGUAGE` | `en` | Report language. User-specified; **default English** when not specified. Any language the model supports |
 | `DELIVERY_TARGET` | `telegram:<chat_id>[:thread_id]` | Where the daily report goes |
 | `SCHEDULE` | `0 20 * * *` | Local evening, after school/work wraps up |
 | `TZ` | `Asia/Jerusalem` | Timezone for daily windows and trends |
@@ -67,6 +67,8 @@ Every daily report must check messages against ALL four categories and cite evid
 
 ## Report format
 
+Render the entire report in `PARENT_LANGUAGE` (default English) — header, labels, and verdict included. The user can request any language at runtime.
+
 ```
 📊 DAILY REPORT — <Child Name> | <DD.MM.YYYY>
 
@@ -88,28 +90,8 @@ Every daily report must check messages against ALL four categories and cite evid
 ⚠️ Verdict: [Normal / Monitor / Needs attention]
 ```
 
-Hebrew version:
-
-```
-📊 דוח יומי — <שם> | <תאריך>
-
-🤖 סיכום היום:
-[2-3 משפטים על פעילות חברתית, טון כללי]
-
-🚩 דגלים אדומים:
-[תיאור או "אין — נראה רגיל ותקין"]
-
-📈 מגמות:
-[WoW: שינוי באחוזים] | [MoM: שינוי באחוזים]
-
-👥 קשרים מרכזיים:
-[טבלת חברים עם כמויות]
-
-💬 קבוצות פעילות:
-[אילו קבוצות היו פעילות]
-
-⚠️ הכרעה: [נורמלי / כדאי לבדוק / דורש תשומת לב]
-```
+- Header is exactly: `📊 DAILY REPORT — {CHILD_NAME} | {DD.MM.YYYY}` — translated into `PARENT_LANGUAGE` (e.g. Spanish: `📊 INFORME DIARIO — ... | 22.08.2026`)
+- Section labels (🤖 Summary, 🚩 Red flags, 📈 WoW/MoM, 👥 Close contacts, 💬 Active groups, ⚠️ Verdict) are translated with the report
 
 ## Detection heuristics
 
