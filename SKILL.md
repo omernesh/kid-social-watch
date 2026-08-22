@@ -29,7 +29,7 @@ This is a **template skill**: every value (child's name, session, JID, delivery 
 | `PARENT_LANGUAGE` | `en` | Report language. User-specified; **default English** when not specified. Any language the model supports |
 | `DELIVERY_TARGET` | `telegram:<chat_id>[:thread_id]` | Where the daily report goes |
 | `SCHEDULE` | `0 20 * * *` | Local evening, after school/work wraps up |
-| `TZ` | `Asia/Jerusalem` | Timezone for daily windows and trends |
+| `TZ` | `America/New_York` | Timezone for daily windows and trends |
 
 ## Pipeline (4 phases)
 
