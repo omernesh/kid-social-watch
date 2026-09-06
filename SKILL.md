@@ -102,6 +102,8 @@ Render the entire report in `PARENT_LANGUAGE` (default English) — header, labe
 5. **All-media, no-text contacts** — normal for teens, but check content if volume is very high.
 6. **Late-night activity** — note messages 01:00–05:00 local, don't necessarily alarm (irregular sleep is common, especially in summer).
 7. **Revoked messages** — Lextrove retains deleted-for-everyone messages (`is_deleted=true`). A monthly scan of revoked messages can surface bullying/social-anxiety signals: someone sending and quickly deleting.
+8. **Social pressure on important events** — look at the WIDE picture, not isolated flags: (a) a sudden DM from someone who normally doesn't DM the child (esp. a socially influential peer) is itself anomalous; (b) pressure to move/change a significant event date (birthday, party), including ultimatums like "don't make us choose between X and Y"; (c) clusters of hesitant RSVPs ("maybe") often trace back to a date conflict between parallel events, not indifference. Cross-reference the child's weeks-long plans and known-important events when evaluating pressure.
+9. **Power dynamics** — when a socially dominant figure pushes a child around something the child cares deeply about, surface it in the report as a wellbeing flag with quoted evidence.
 
 ## Daily cron (optional — NOT pre-enabled)
 
@@ -125,6 +127,6 @@ cronjob create \
 - **`resolve_entity` → `identifier` is the JID** — pass it as `sender_id` / `chat_id`; the UUID is for profile tools.
 - **`search_messages` can return empty for date windows** where `list_messages` returns full data — corroborate with volume analytics before concluding "quiet day".
 - **DM analytics may return all zeros** for some contacts — known Lextrove limitation; fall back to `list_messages`.
-- **Formatting:** never use markdown pipe tables for chat delivery (render broken) — use bullet lists.
+- **Formatting:** markdown pipe tables render fine in Telegram (verified 2026-09-06) — use them for tabular data in chat delivery. Fall back to bullet lists only for very wide/multi-line content.
 - **Verify delivery after manual runs** — check the job's `last_delivery_error`; async reports can fail silently.
 - **This skill is public** — no real names, phone numbers, session names, or credentials. All config at runtime.
