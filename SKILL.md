@@ -35,10 +35,10 @@ This is a **template skill**: every value (child's name, session, JID, delivery 
 
 ### Phase 1 — Pull today's messages
 ```
-list_messages(session=<LEX_SESSION>, chat_type="dm",    from=TODAY, to=TODAY, limit=100)
-list_messages(session=<LEX_SESSION>, chat_type="group", from=TODAY, to=TODAY, limit=100)
+search_messages(session=<LEX_SESSION>, chat_type="dm",    from=TODAY, to=TODAY, limit=100)
+search_messages(session=<LEX_SESSION>, chat_type="group", from=TODAY, to=TODAY, limit=100)
 ```
-Use `list_messages`, NOT `search_messages` (FTS needs a topic query and is flaky with non-Latin text). Analyze for: bullying, arguments, social exclusion, sudden topic changes, unusual silence.
+Note: `list_messages` does NOT accept `chat_type` (schema rejects it) — for the DM/group split use `search_messages` with `chat_type` and no `query` (filter-only dump, newest-first; `query="*"`/empty fails). For per-person or single-chat pulls use `list_messages` with `sender_id`/`contact_name`/`chat_id`/`group_name`. Analyze for: bullying, arguments, social exclusion, sudden topic changes, unusual silence.
 
 ### Phase 2 — Volume trends (WoW + MoM)
 ```
@@ -92,6 +92,7 @@ Render the entire report in `PARENT_LANGUAGE` (default English) — header, labe
 
 - Header is exactly: `📊 DAILY REPORT — {CHILD_NAME} | {DD.MM.YYYY}` — translated into `PARENT_LANGUAGE` (e.g. Spanish: `📊 INFORME DIARIO — ... | 22.08.2026`)
 - Section labels (🤖 Summary, 🚩 Red flags, 📈 WoW/MoM, 👥 Close contacts, 💬 Active groups, ⚠️ Verdict) are translated with the report
+- **Hebrew deployments (layout approved 2026-09-09):** use the MANDATORY table layout in `templates/daily-report-hebrew-table.md` — מגמות / שולחים פעילים / קבוצות פעילות must be markdown pipe tables, never bullets. Embed the template in the cron prompt verbatim (cron sessions have no chat context).
 
 ## Detection heuristics
 
