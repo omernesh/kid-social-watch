@@ -35,6 +35,10 @@ Requires a Hermes installation with the Lextrove MCP server configured.
 
 Ask your agent: *"how was Alex's day socially?"* — the skill resolves the session, pulls the day, and produces the report.
 
+### Deep-dive (ad hoc)
+
+When a situation needs network context — social pressure around an event, sudden DMs from a group-only contact, exclusion dynamics, "who are the leaders in this circle?" — the companion methodology lives in the `social-graph-community-detection` skill, and the algorithm runner ships here: `scripts/social_graph_leiden.py` runs a Leiden resolution sweep + Louvain cross-check + betweenness brokers + a stability verdict over a weighted interaction graph (`pip install leidenalg igraph`). **Ad hoc only — never in the daily cron** (graph builds are compute-intensive; use them when a real question exists).
+
 ### Daily cron
 
 The skill documents a daily cron recipe (evening schedule, staggered across multiple children). **Not pre-enabled** — create it per child when you want it. Pin a cheap capable model for daily runs.
@@ -42,8 +46,10 @@ The skill documents a daily cron recipe (evening schedule, staggered across mult
 ## Files
 
 ```
-SKILL.md                      # the skill definition + full runbook
-README.md                     # this file
+SKILL.md                            # the skill definition + full runbook
+README.md                           # this file
+scripts/kid_replies_marker.py       # Phase 5 direct-replies detector
+scripts/social_graph_leiden.py      # ad-hoc community detection (Leiden/Louvain)
 ```
 
 ## License

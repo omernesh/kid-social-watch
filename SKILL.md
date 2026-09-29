@@ -4,7 +4,7 @@ description: "Daily social-wellbeing watch for a child's WhatsApp — pull today
 category: devops
 metadata:
   tags: [whatsapp, lextrove, safety, children, monitoring, cron, template]
-  related_skills: [whatsapp-integration, lextrove-analytics-queries]
+  related_skills: [whatsapp-integration, lextrove-analytics-queries, social-graph-community-detection]
 ---
 
 # Kid Social Watch (Template)
@@ -58,6 +58,12 @@ Format in `PARENT_LANGUAGE` (see Report format below). Cite evidence for every f
 Run the shipped detector: `python3 scripts/kid_replies_marker.py <child_key>` (deterministic, hub-side, ~10s; children configured in the `KID_WATCH_CONFIG` file — see the script's docstring for the schema, incl. report `lang`). It reports quoted direct replies to the child's messages received in the window, split into message replies / status replies / earlier-message replies, with examples and cached LID/name resolution. Embed its output VERBATIM as an additional bullet in the engagement section of the report (Hebrew layout: under ⚡ מעורבות). On tool failure, note the marker as unavailable in the report language and continue — never block the report on it.
 
 **How it works (detection facts):** chatlytics hub message rows carry `replyTo = {id: <stanza>, participant: <quoted author LID>, body: <quoted text>}`; a direct reply to the child ⇔ `replyTo.participant == child LID` OR `replyTo.id ∈ child's sent-message stanzas` (stanza extractable from own-message ids like `true_<chat>_<stanza>`). The same stanza quoted across ≥2 different chats = a status reply (per-chat sends get unique stanzas — a cross-chat collision means a status/broadcast). Lextrove's own `quoted_message_id` is NOT usable for this — it is a WAHA-format id that does not join to row UUIDs, and `get_message` rejects non-UUID ids. Hub access: `POST <hub>/api/v1/actions {action,params,session}` + `GET <hub>/api/v1/messages?chatId=…&session=…&limit=N` (top-level list, newest-first; `status@broadcast` returns empty — statuses themselves are not served).
+
+## Deep-dive escalation — community detection (ad hoc)
+
+When a flag needs NETWORK context — social pressure around an important event, a sudden DM from a group-only contact, exclusion dynamics, "who holds social power in this circle?" — escalate to the ad-hoc community-detection deep-dive. Methodology (edge-weight recipe, interpretation playbook): the `social-graph-community-detection` skill. Algorithm runner (ships here): `python3 scripts/social_graph_leiden.py graph.json` — Leiden resolution sweep + Louvain cross-check + betweenness brokers + stability verdict (`pip install leidenalg igraph`; input = JSON nodes/edges spec).
+
+Rules: **ad hoc only — never inside the daily watch cron** (graph builds are compute-intensive; use a bounded node set and only when a real question exists). Graph metrics are hypotheses — verify against message content before reporting.
 
 ## Red flag checklist
 
