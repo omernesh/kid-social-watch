@@ -33,6 +33,7 @@ Layout approved 2026-09-09 (reference: the first live Hebrew deployment's daily 
 ⚡ מעורבות:
 • תגובות: N על N הודעות מ-N מגיבים. אמוג'י מוביל: X.
 • זמן תגובה חציוני: [contact] ~N דק' | [contact] ~N דק' (מהיר/רגיל/מנותק)
+• ↩️ מענה ישיר (ציטוטים): [Phase 5 marker output — verbatim; omit this line if the marker is not configured]
 
 💬 קבוצות פעילות:
 

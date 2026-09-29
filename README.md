@@ -10,6 +10,7 @@ Every day (or on demand), the skill:
 2. Compares volume week-over-week and month-over-month
 3. Checks every message against a 4-category red-flag checklist (behavioral shifts, stranger danger, sextortion, cyberbullying)
 4. Compiles a structured report: summary, red flags, trends, close contacts, active groups, verdict
+5. Detects direct (quoted) replies to the child's own messages — an interaction marker that their messages aren't ignored (`scripts/kid_replies_marker.py`, a deterministic hub-side detector)
 
 Example header:
 

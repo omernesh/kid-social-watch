@@ -30,8 +30,9 @@ This is a **template skill**: every value (child's name, session, JID, delivery 
 | `DELIVERY_TARGET` | `telegram:<chat_id>[:thread_id]` | Where the daily report goes |
 | `SCHEDULE` | `0 20 * * *` | Local evening, after school/work wraps up |
 | `TZ` | `America/New_York` | Timezone for daily windows and trends |
+| `KID_WATCH_CONFIG` | `~/.hermes/kid-social-watch.json` | Optional — config for the Phase 5 replies marker (children keys, hub base, key file, lang). Schema in `scripts/kid_replies_marker.py` docstring |
 
-## Pipeline (4 phases)
+## Pipeline (5 phases)
 
 ### Phase 1 — Pull today's messages
 ```
@@ -52,6 +53,11 @@ For each top contact the child DMs, compare volume across periods. Flag if a pre
 
 ### Phase 4 — Compile report
 Format in `PARENT_LANGUAGE` (see Report format below). Cite evidence for every flag.
+
+### Phase 5 — Direct replies marker
+Run the shipped detector: `python3 scripts/kid_replies_marker.py <child_key>` (deterministic, hub-side, ~10s; children configured in the `KID_WATCH_CONFIG` file — see the script's docstring for the schema, incl. report `lang`). It reports quoted direct replies to the child's messages received in the window, split into message replies / status replies / earlier-message replies, with examples and cached LID/name resolution. Embed its output VERBATIM as an additional bullet in the engagement section of the report (Hebrew layout: under ⚡ מעורבות). On tool failure, note the marker as unavailable in the report language and continue — never block the report on it.
+
+**How it works (detection facts):** chatlytics hub message rows carry `replyTo = {id: <stanza>, participant: <quoted author LID>, body: <quoted text>}`; a direct reply to the child ⇔ `replyTo.participant == child LID` OR `replyTo.id ∈ child's sent-message stanzas` (stanza extractable from own-message ids like `true_<chat>_<stanza>`). The same stanza quoted across ≥2 different chats = a status reply (per-chat sends get unique stanzas — a cross-chat collision means a status/broadcast). Lextrove's own `quoted_message_id` is NOT usable for this — it is a WAHA-format id that does not join to row UUIDs, and `get_message` rejects non-UUID ids. Hub access: `POST <hub>/api/v1/actions {action,params,session}` + `GET <hub>/api/v1/messages?chatId=…&session=…&limit=N` (top-level list, newest-first; `status@broadcast` returns empty — statuses themselves are not served).
 
 ## Red flag checklist
 
@@ -96,7 +102,7 @@ Render the entire report in `PARENT_LANGUAGE` (default English) — header, labe
 
 ## Detection heuristics
 
-1. **WhatsApp Status vs DM** — a contact with many media messages and `chat_id: "status@broadcast"` = status updates, NOT DMs. Harmless.
+1. **WhatsApp Status vs DM** — a contact with many media messages and `chat_id: "status@broadcast"` = status updates, NOT DMs. Harmless. In sender rankings a status-only contact (no DM and no group rows) inflates message_count — verify with a `chat_type="status"` pull and label "statuses only", never "groups only".
 2. **Volume drop >40% WoW** — investigate: social exclusion, vacation, or device issues.
 3. **Sudden contact disappearance** — a top-3 contact dropping to near-zero in a week gets flagged.
 4. **Negative language** — scan for bullying terms in the child's language; include a localized term list.
@@ -105,6 +111,7 @@ Render the entire report in `PARENT_LANGUAGE` (default English) — header, labe
 7. **Revoked messages** — Lextrove retains deleted-for-everyone messages (`is_deleted=true`). A monthly scan of revoked messages can surface bullying/social-anxiety signals: someone sending and quickly deleting.
 8. **Social pressure on important events** — look at the WIDE picture, not isolated flags: (a) a sudden DM from someone who normally doesn't DM the child (esp. a socially influential peer) is itself anomalous; (b) pressure to move/change a significant event date (birthday, party), including ultimatums like "don't make us choose between X and Y"; (c) clusters of hesitant RSVPs ("maybe") often trace back to a date conflict between parallel events, not indifference. Cross-reference the child's weeks-long plans and known-important events when evaluating pressure.
 9. **Power dynamics** — when a socially dominant figure pushes a child around something the child cares deeply about, surface it in the report as a wellbeing flag with quoted evidence.
+10. **Peer mentions of unexplained absences** — e.g. a classmate asking "why weren't you at school yesterday": not one of the four red-flag categories, but surface it as a low-key parent note unless an obvious explanation (illness, known trip) is present.
 
 ## Daily cron (optional — NOT pre-enabled)
 
@@ -113,7 +120,7 @@ cronjob create \
   schedule='0 20 * * *' \
   name='social-watch-<child>' \
   skills=['kid-social-watch'] \
-  prompt='Daily social watch for <CHILD_NAME> (session <LEX_SESSION>, JID <CHILD_JID>). Follow the kid-social-watch skill: run the 4 phases, compile the report in <PARENT_LANGUAGE>, deliver to <DELIVERY_TARGET>.' \
+  prompt='Daily social watch for <CHILD_NAME> (session <LEX_SESSION>, JID <CHILD_JID>). Follow the kid-social-watch skill: run the 4 core phases and the Phase 5 replies marker, compile the report in <PARENT_LANGUAGE>, deliver to <DELIVERY_TARGET>.' \
   deliver=<DELIVERY_TARGET>
 ```
 
@@ -130,4 +137,5 @@ cronjob create \
 - **DM analytics may return all zeros** for some contacts — known Lextrove limitation; fall back to `list_messages`.
 - **Formatting:** markdown pipe tables render fine in Telegram (verified 2026-09-06) — use them for tabular data in chat delivery. Fall back to bullet lists only for very wide/multi-line content.
 - **Verify delivery after manual runs** — check the job's `last_delivery_error`; async reports can fail silently.
+- **Reply-time median inflated by one-sided media batches** — a burst of 30+ unanswered photos/videos gives every row the same later-reply gap and drags the median from minutes to hours (raw vs burst-aware medians differ by orders of magnitude). Collapse consecutive same-sender messages (≤10 min apart) into bursts; measure burst-end → child's next message; quote the median of bursts answered within ~6h, and report long/unanswered bursts separately.
 - **This skill is public** — no real names, phone numbers, session names, or credentials. All config at runtime.
