@@ -49,6 +49,7 @@ The skill documents a daily cron recipe (evening schedule, staggered across mult
 SKILL.md                            # the skill definition + full runbook
 README.md                           # this file
 scripts/kid_replies_marker.py       # Phase 5 direct-replies detector
+scripts/social_graph_build.py       # hub-based graph builder (feeds the Leiden runner)
 scripts/social_graph_leiden.py      # ad-hoc community detection (Leiden/Louvain)
 ```
 
