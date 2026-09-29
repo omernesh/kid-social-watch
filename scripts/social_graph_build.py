@@ -231,8 +231,42 @@ def main():
             keep.add(ck)
 
     labels, used = {}, set()
+    _nm = {}
+    try:
+        _nm = json.load(open("/home/omer/kidreports/data/name-map.json"))
+    except Exception:
+        _nm = {}
+    _by_jid = _nm.get("by_jid") or {}
+    _canon = _nm.get("canonical") or {}
+
+    def nm_resolve(ck):
+        """Resolve an unnamed canon key -> display name via the name-map (or phone format)."""
+        def dig(s):
+            return re.sub(r"\D", "", s)
+        if ck.startswith("pn:"):
+            tail = ck[3:]
+            for jid, name in _by_jid.items():
+                if dig(jid).endswith(tail):
+                    return _canon.get((name or "").lower(), name)
+            if len(tail) == 9:
+                return "0%s-%s-%s" % (tail[:2], tail[2:5], tail[5:])
+            return None
+        if ck.startswith("id:"):
+            sid = ck[3:]
+            for key in (sid, sid.split("@")[0]):
+                if key and key in _by_jid:
+                    name = _by_jid[key]
+                    return _canon.get((name or "").lower(), name)
+            tail = dig(sid.split("@")[0])[-9:]
+            if len(tail) == 9:
+                for jid, name in _by_jid.items():
+                    if dig(jid).endswith(tail):
+                        return _canon.get((name or "").lower(), name)
+                return "0%s-%s-%s" % (tail[:2], tail[2:5], tail[5:])
+        return None
+
     for ck in keep:
-        base = node_label.get(ck) or ("…" + ck[-6:])
+        base = node_label.get(ck) or nm_resolve(ck) or ("…" + ck[-6:])
         lbl, i = base, 2
         while lbl in used:
             lbl = "%s #%d" % (base, i)
