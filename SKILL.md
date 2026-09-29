@@ -71,6 +71,14 @@ The monthly JSON outputs (per child: totals, daily series, DM/group splits, enga
 
 Template pitfalls worth remembering: escape literal `%` in %-formatted HTML strings; never use a replacement marker that is a substring of text already in the template (e.g. `__DATA__` inside `window.__DATA__`); flex charts need `align-items:stretch` on the row for percentage-height bars to render.
 
+v2 additions (reference deployment, 2026-09-29):
+- **Month-over-month deltas + flags strip** — two side-by-side cards under the KPIs. The strip parses daily-digest `VERDICT:`/`FLAG:` lines (flag when the verdict carries the explicit check level; ignore FLAG lines starting with the language's "none" word). Without previous-month data the deltas card shows a graceful empty state.
+- **Daily-report modal** — a per-report `daily.json` archive (`{days: {YYYY-MM-DD: text}}`) written next to the HTML; bars / flag rows carry `data-d` and open the modal via `fetch`. The share-token route must include `daily.json` in its allowed-file list or the modal 404s on share links.
+- **Hover tooltips everywhere** — `data-tip` attributes + one delegated tooltip element (avoid native `title`, it double-shows); cover all charts, KPI tiles, and card-level ⓘ icons that explain each card's purpose in plain language (users explicitly request "why is this card here").
+- **Interactive network map** — deterministic layout at load, then drag nodes / wheel-zoom / pan via an SVG `<g>` transform; click-without-drag opens a per-entity panel (degree strength + top connections); double-click resets the view; labels get `pointer-events:none` so they don't block dragging.
+- **Name map** (`name-map.json`) — hub chat lists + family-group aliases + a curated canonical table (all of a parent's pushName variants → one display identity) + Lextrove `resolve_entity` fallback for unresolved group JIDs. Consumed by BOTH the renderer (display labels) and the graph builder (node labels — replaces truncated `…123456` / `…pp.net` labels with names or phone-formatted numbers). Persist it across runs and rebuild it BEFORE collection so fresh graph builds get clean labels.
+- **Pipeline order matters:** fetch family → build name map → collect (incl. graph) → merge family → daily archive → render → PDFs → manifest.
+
 ## Deep-dive escalation — community detection (ad hoc)
 
 When a flag needs NETWORK context — social pressure around an important event, a sudden DM from a group-only contact, exclusion dynamics, "who holds social power in this circle?" — escalate to the ad-hoc community-detection deep-dive. Methodology (edge-weight recipe, interpretation playbook): the `social-graph-community-detection` skill. Runners ship here: `scripts/social_graph_build.py` (hub-based graph builder) and `scripts/social_graph_leiden.py` (solver).
@@ -157,4 +165,6 @@ cronjob create \
 - **Formatting:** markdown pipe tables render fine in Telegram (verified 2026-09-06) — use them for tabular data in chat delivery. Fall back to bullet lists only for very wide/multi-line content.
 - **Verify delivery after manual runs** — check the job's `last_delivery_error`; async reports can fail silently.
 - **Reply-time median inflated by one-sided media batches** — a burst of 30+ unanswered photos/videos gives every row the same later-reply gap and drags the median from minutes to hours (raw vs burst-aware medians differ by orders of magnitude). Collapse consecutive same-sender messages (≤10 min apart) into bursts; measure burst-end → child's next message; quote the median of bursts answered within ~6h, and report long/unanswered bursts separately.
+- **Editing %-formatted HTML strings** — count placeholders vs args after edits (mismatch → `TypeError: not all arguments converted during string formatting`); render one child end-to-end immediately after template edits.
+- **Headless Chromium (snap builds) can't write into dot-directories** — screenshot to a non-hidden path, then move the file.
 - **This skill is public** — no real names, phone numbers, session names, or credentials. All config at runtime.
