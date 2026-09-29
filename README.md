@@ -11,6 +11,7 @@ Every day (or on demand), the skill:
 3. Checks every message against a 4-category red-flag checklist (behavioral shifts, stranger danger, sextortion, cyberbullying)
 4. Compiles a structured report: summary, red flags, trends, close contacts, active groups, verdict
 5. Detects direct (quoted) replies to the child's own messages — an interaction marker that their messages aren't ignored (`scripts/kid_replies_marker.py`, a deterministic hub-side detector)
+6. Computes a per-member peer-comparison baseline for the monthly report (`scripts/member_stats.py`) — powers a "vs peers" card and rank-backed narrative claims
 
 Example header:
 
@@ -51,6 +52,7 @@ README.md                           # this file
 scripts/kid_replies_marker.py       # Phase 5 direct-replies detector
 scripts/social_graph_build.py       # hub-based graph builder (feeds the Leiden runner)
 scripts/social_graph_leiden.py      # ad-hoc community detection (Leiden/Louvain)
+scripts/member_stats.py             # per-member peer-comparison baseline (monthly)
 ```
 
 ## License
