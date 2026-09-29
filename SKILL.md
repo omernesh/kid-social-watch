@@ -62,6 +62,15 @@ Run the shipped detector: `python3 scripts/kid_replies_marker.py <child_key>` (d
 ### Phase 6 — Monthly community-graph scan (1st of each month only)
 Run `python3 scripts/social_graph_build.py <child_key> --run` — hub-based: builds the child's last-30-days weighted interaction graph (DM pairs `3·log1p` + shared-group co-activity `log1p(min)`) and executes the Leiden/Louvain runner (`scripts/social_graph_leiden.py`: resolution sweep + cross-check + betweenness brokers + stability verdict). ~30s once the LID/phone id-map is cached. **Resource-intensive — run it ONLY on the 1st of the month, never on other days.** Embed the core output as a "🕸️ monthly communities" block in the report (before the month's deleted-messages block, or before the verdict): circles count, top brokers, and the child's stable group. On failure, note it as unavailable in one line and continue.
 
+### Phase 7 — Hosted monthly report portal (optional)
+The monthly JSON outputs (per child: totals, daily series, DM/group splits, engagement, graph) can be published as a self-hosted report portal: a static RTL site with per-child/per-month HTML reports, print-perfect PDF export, and tokenized share links (`/s/<token>/`). Reference architecture:
+- **Collector** — aggregates the month window (hub stats, DM/group split, engagement marker, Leiden graph) into one JSON per child; family-group stats merged in from a separate paginated fetch (`session=all` — required for shared groups).
+- **Renderer** — string templates + a small inlined CSS/force-graph JS → `standard.html` + `graph.html`, then headless-Chromium print-to-PDF for both; writes a `manifest.json` (children × months) that the index page reads via `fetch`.
+- **Auth/hosting** — tiny static server with HTTP Basic auth plus a share-token bypass for `/s/<token>/`; run under systemd and expose through an existing Cloudflare tunnel ingress.
+- **Monthly automation** — one cron job on day 1: fetch → collect → render for all children; the agent phase drafts any missing narrative JSONs (summary / conclusions / recommendations, in the parent language) from the daily digests, re-renders, and messages the share links.
+
+Template pitfalls worth remembering: escape literal `%` in %-formatted HTML strings; never use a replacement marker that is a substring of text already in the template (e.g. `__DATA__` inside `window.__DATA__`); flex charts need `align-items:stretch` on the row for percentage-height bars to render.
+
 ## Deep-dive escalation — community detection (ad hoc)
 
 When a flag needs NETWORK context — social pressure around an important event, a sudden DM from a group-only contact, exclusion dynamics, "who holds social power in this circle?" — escalate to the ad-hoc community-detection deep-dive. Methodology (edge-weight recipe, interpretation playbook): the `social-graph-community-detection` skill. Runners ship here: `scripts/social_graph_build.py` (hub-based graph builder) and `scripts/social_graph_leiden.py` (solver).
