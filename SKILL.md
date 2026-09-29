@@ -78,6 +78,7 @@ v2 additions (reference deployment, 2026-09-29):
 - **Interactive network map** — deterministic layout at load, then drag nodes / wheel-zoom / pan via an SVG `<g>` transform; click-without-drag opens a per-entity panel (degree strength + top connections); double-click resets the view; labels get `pointer-events:none` so they don't block dragging.
 - **Name map** (`name-map.json`) — hub chat lists + family-group aliases + a curated canonical table (all of a parent's pushName variants → one display identity) + Lextrove `resolve_entity` fallback for unresolved group JIDs. Consumed by BOTH the renderer (display labels) and the graph builder (node labels — replaces truncated `…123456` / `…pp.net` labels with names or phone-formatted numbers). Persist it across runs and rebuild it BEFORE collection so fresh graph builds get clean labels.
 - **Pipeline order matters:** fetch family → build name map → collect (incl. graph) → merge family → daily archive → render → PDFs → manifest.
+- **PDF export uses A4 landscape** (`@page{size:A4 landscape;margin:10mm}`) — the ~1060px-wide design clips horizontally on portrait A4 (only ~717px usable vs ~1046px usable in landscape). After any print-CSS change, re-render and verify with `pdfinfo` (expect 841.92×594.96 pts) plus a rasterized page check.
 
 ## Deep-dive escalation — community detection (ad hoc)
 
