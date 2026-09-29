@@ -169,6 +169,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("child", help="child key as defined in the config (children map)")
     ap.add_argument("--hours", type=float, default=None)
+    ap.add_argument("--from", dest="from_date", default=None, help="window start date YYYY-MM-DD (overrides --hours)")
+    ap.add_argument("--to", dest="to_date", default=None, help="window end date YYYY-MM-DD, inclusive (default: now)")
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--config", default=os.environ.get("KID_WATCH_CONFIG") or DEFAULT_CONFIG)
     ap.add_argument("--limit-per-chat", type=int, default=150)
@@ -192,14 +194,19 @@ def main():
     phone = ccfg.get("phone")
 
     now = int(time.time())
-    if args.hours:
+    il = datetime.timezone(datetime.timedelta(hours=3))
+    if args.from_date:
+        ws = int(datetime.datetime.strptime(args.from_date, "%Y-%m-%d").replace(tzinfo=il).timestamp())
+    elif args.hours:
         ws = now - int(args.hours * 3600)
     else:
-        il = datetime.timezone(datetime.timedelta(hours=3))
         ws = int(datetime.datetime.fromtimestamp(now, il).replace(
             hour=0, minute=0, second=0, microsecond=0).timestamp())
+    we = now
+    if args.to_date:
+        we = int((datetime.datetime.strptime(args.to_date, "%Y-%m-%d") + datetime.timedelta(days=1)).replace(tzinfo=il).timestamp()) - 1
 
-    result = {"child": args.child, "session": session, "window_start": ws, "window_end": now,
+    result = {"child": args.child, "session": session, "window_start": ws, "window_end": we,
               "sent": 0, "replies": [], "chats_scanned": 0, "errors": []}
     try:
         chats = ctx.hub_action("getChats", {}, session)
@@ -243,7 +250,7 @@ def main():
             rows = rows.get("messages") or rows.get("data") or []
         for m in rows:
             ts = m.get("timestamp") or 0
-            if ts < ws:
+            if ts < ws or ts > we:
                 continue
             st = stanza_of(m.get("id"))
             if m.get("fromMe"):

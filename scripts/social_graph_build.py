@@ -92,10 +92,12 @@ def main():
     ap = argparse.ArgumentParser(description="Build a weighted social-graph spec for a child")
     ap.add_argument("child")
     ap.add_argument("--days", type=int, default=30)
+    ap.add_argument("--from", dest="from_date", default=None, help="window start date YYYY-MM-DD (overrides --days)")
+    ap.add_argument("--to", dest="to_date", default=None, help="window end date YYYY-MM-DD, inclusive (default: now)")
     ap.add_argument("--min-count", type=int, default=3, help="min messages to become a node")
     ap.add_argument("--max-nodes", type=int, default=40)
     ap.add_argument("--top-per-group", type=int, default=15)
-    ap.add_argument("--limit", type=int, default=400, help="messages pulled per chat (newest-first)")
+    ap.add_argument("--limit", type=int, default=1200, help="messages pulled per chat (newest-first)")
     ap.add_argument("--run", action="store_true", help="also run social_graph_leiden.py")
     ap.add_argument("--json", action="store_true", help="print the spec JSON instead of the summary")
     ap.add_argument("--config", default=os.environ.get("KID_WATCH_CONFIG") or DEFAULT_CONFIG)
@@ -115,7 +117,15 @@ def main():
     child_label = ccfg.get("name") or args.child
     ctx = Ctx(cfg)
     now = int(time.time())
-    ws = now - args.days * 86400
+    import datetime as _dt
+    il = _dt.timezone(_dt.timedelta(hours=3))
+    if getattr(args, "from_date", None):
+        ws = int(_dt.datetime.strptime(args.from_date, "%Y-%m-%d").replace(tzinfo=il).timestamp())
+    else:
+        ws = now - args.days * 86400
+    we = now
+    if getattr(args, "to_date", None):
+        we = int((_dt.datetime.strptime(args.to_date, "%Y-%m-%d") + _dt.timedelta(days=1)).replace(tzinfo=il).timestamp()) - 1
 
     try:
         chats = ctx.hub_action("getChats", {}, session)
@@ -133,7 +143,7 @@ def main():
     for ch in active:
         cid = ch.get("id") or ""
         is_group = cid.endswith("@g.us")
-        is_dm = cid.endswith("@c.us") or cid.endswith("@lid")
+        is_dm = cid.endswith(("@c.us", "@lid", "@s.whatsapp.net"))
         if not (is_group or is_dm):
             continue
         try:
@@ -144,7 +154,8 @@ def main():
         if isinstance(rows, dict):
             rows = rows.get("messages") or rows.get("data") or []
         for m in rows:
-            if (m.get("timestamp") or 0) < ws:
+            mts = m.get("timestamp") or 0
+            if mts < ws or mts > we:
                 continue
             nm = (m.get("_data") or {}).get("pushName")
             if is_dm:
