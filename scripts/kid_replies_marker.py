@@ -363,7 +363,10 @@ def finish(ctx, result, args, ccfg=None, child_lid=None):
             bits.append(L["bit_status"].format(n=len(r_st)))
         if r_old:
             bits.append(L["bit_old"].format(n=len(r_old)))
-        lines.append(L["header"].format(n=len(replies), bits=", ".join(bits), sent=sent))
+        hdr = L["header"].format(n=len(replies), bits=", ".join(bits), sent=sent)
+        if len(replies) == 1:
+            hdr = hdr.replace("1 תגובות שהתקבלו", "תגובה אחת שהתקבלה")
+        lines.append(hdr)
         ex = sorted(r_msg, key=lambda x: x["ts"]) + sorted(r_st, key=lambda x: x["ts"])
         parts = []
         for r in ex[:5]:
