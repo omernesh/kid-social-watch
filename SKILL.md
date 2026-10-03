@@ -106,7 +106,7 @@ Daily prompt step (mandatory, in every child's daily job): save the composed rep
 
 **Device status.** `device_status.py` queries the analytics MCP `list_sessions` (raw HTTP JSON-RPC POST; token from env) for each child's session status (WORKING vs STOPPED/missing) and formats a Hebrew line. Modes:
 - `--all --write` — refreshes the status JSON served at `/status.json` (auth-protected) and prints a human table.
-- `--all --write --notify` — prints ONLY transitions (disconnect/reconnect) — powers a silent 30-min cron; ensure every run also writes the status file so transitions dedupe correctly.
+- `--all --write --notify` — prints ONLY transitions (disconnect/reconnect). MUTED by default: Omer gets session-disconnect notices directly from Chatlytics, so the scheduled refresher runs WITHOUT `--notify` (dashboard freshness only). Re-enable only if he asks.
 - `<child> --line` — the Hebrew one-liner for the daily report.
 
 Portal UI: home page fetches `/status.json` for per-child status chips (red = disconnected, with "since" time); report pages inject a red banner when the child's session is not WORKING — skip the fetch on share pages (no auth there).
