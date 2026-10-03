@@ -111,6 +111,8 @@ Daily prompt step (mandatory, in every child's daily job): save the composed rep
 
 Portal UI: home page fetches `/status.json` for per-child status chips (red = disconnected, with "since" time); report pages inject a red banner when the child's session is not WORKING — skip the fetch on share pages (no auth there).
 
+Runners ship here: `scripts/daily_publish.py`, `scripts/device_status.py`, `scripts/device_watch.sh` (generic; private values via the `KID_WATCH_CONFIG` file — `site_dir`, `site_domain`, `children[].session` + `children[].name`). Deployment keeps identical copies in `~/.hermes/scripts/` where the cron prompts invoke them.
+
 ## Deep-dive escalation — community detection (ad hoc)
 
 When a flag needs NETWORK context — social pressure around an important event, a sudden DM from a group-only contact, exclusion dynamics, "who holds social power in this circle?" — escalate to the ad-hoc community-detection deep-dive. Methodology (edge-weight recipe, interpretation playbook): the `social-graph-community-detection` skill. Runners ship here: `scripts/social_graph_build.py` (hub-based graph builder) and `scripts/social_graph_leiden.py` (solver).

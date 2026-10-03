@@ -12,6 +12,8 @@ Every day (or on demand), the skill:
 4. Compiles a structured report: summary, red flags, trends, close contacts, active groups, verdict
 5. Detects direct (quoted) replies to the child's own messages — an interaction marker that their messages aren't ignored (`scripts/kid_replies_marker.py`, a deterministic hub-side detector)
 6. Computes a per-member peer-comparison baseline for the monthly report (`scripts/member_stats.py`) — powers a "vs peers" card and rank-backed narrative claims
+7. Publishes each daily report to an optional hosted report site and appends a device line + deep link to the delivered report (`scripts/daily_publish.py`)
+8. Surfaces per-child phone/session connectivity (WORKING / STOPPED / missing) in reports and on the site dashboard (`scripts/device_status.py`; silent refresher example: `scripts/device_watch.sh`)
 
 Example header:
 
@@ -53,6 +55,9 @@ scripts/kid_replies_marker.py       # Phase 5 direct-replies detector
 scripts/social_graph_build.py       # hub-based graph builder (feeds the Leiden runner)
 scripts/social_graph_leiden.py      # ad-hoc community detection (Leiden/Louvain)
 scripts/member_stats.py             # per-member peer-comparison baseline (monthly)
+scripts/daily_publish.py            # publish a day's report to the hosted site (live month pages)
+scripts/device_status.py            # per-child session status (report line / dashboard JSON)
+scripts/device_watch.sh             # silent dashboard refresher (no notifications)
 ```
 
 ## License
