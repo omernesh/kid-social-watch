@@ -122,6 +122,7 @@ Same look as the monthly standard report, but over one week (Sunday–Saturday).
 - **Page contents** — KPI row with WoW delta on the total; 7-day bar strip with every day labeled (bar click deep-links to that day's daily report via a `window.__WEEKLY__` branch in the shared JS); "מול השבוע שעבר" table; top DMs; groups table; a deterministic Hebrew summary paragraph (no LLM); and a 7-row flags roll-up — per-day verdict parsed from the daily archive texts, 🚩/✓ per day.
 - **Share-page caveat** — cross-links to daily/monthly need auth; they carry `data-share-hide` and the shared JS hides them on `/s/` pages.
 - **Pipeline** — `weekly_all.sh [wk]` (default: the week that just ended) → collect cur+prev for all kids → render all → compact digest on stdout for the cron agent. WeasyPrint-less PDFs via headless Chromium, same as monthly.
+- **Exit codes** — pipeline scripts always exit 0; per-kid status travels in the digest. A non-zero exit makes the Hermes cron agent frame the whole run as "script failed" instead of reading the per-kid statuses (a stopped session's NO DATA is normal, not a failure).
 
 ## Deep-dive escalation — community detection (ad hoc)
 
