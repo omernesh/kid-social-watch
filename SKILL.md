@@ -95,6 +95,22 @@ v2 additions (reference deployment, 2026-09-29):
 - **Overlay labels swallow hover events** — an absolutely-positioned `inset:0` label over a chart (e.g. the donut's center text) intercepts every mouse event over the whole chart, killing tooltips; set `pointer-events:none` on the overlay. Verify tooltips with a REAL browser (playwright `mouse.move` + read `.tip` state + console errors), never by grepping the HTML for `data-tip` alone.
 - **% -formatted strings: count placeholders vs args after EVERY edit** — mismatched counts raise `TypeError: not all arguments converted during string formatting` at render time (silent page regressions if the renderer continues). Render one child immediately after template edits and confirm the diff landed.
 
+### Phase 8 — Live daily publishing + device status (portal add-ons)
+
+**Live daily publishing.** `daily_publish.py <child> --report <file.md>`:
+1. merges the composed report into a live per-month source file (`## YYYY-MM-DD` sections; same-date replaces). Sources merge order for the daily JSON rebuild: raw archive → live file → cron-run extraction (cron-extracted copies get appended footer lines — site link / device status — stripped).
+2. renders `reports/<child>/<month>/daily.html`. For an in-progress month with no monthly report yet, synthesize a minimal `{"name","month_label"}` data object and thread a `has_monthly` flag through the tab/hero builders so the monthly/graph tabs hide until those files exist (else the page 404s on click).
+3. ensures a per-child·month share token and prints the deep link `…/s/<token>/daily.html#d-<iso>`.
+
+Daily prompt step (mandatory, in every child's daily job): save the composed report to a scratch file → run `daily_publish.py` → run `device_status.py <child> --line` → append to the delivered report at the very end: the device line + `🔗` site link; when the device is disconnected also add a warning right under the report header. Never describe a disconnect as "phone turned off" — say "session disconnected from Chatlytics since X; data missing".
+
+**Device status.** `device_status.py` queries the analytics MCP `list_sessions` (raw HTTP JSON-RPC POST; token from env) for each child's session status (WORKING vs STOPPED/missing) and formats a Hebrew line. Modes:
+- `--all --write` — refreshes the status JSON served at `/status.json` (auth-protected) and prints a human table.
+- `--all --write --notify` — prints ONLY transitions (disconnect/reconnect) — powers a silent 30-min cron; ensure every run also writes the status file so transitions dedupe correctly.
+- `<child> --line` — the Hebrew one-liner for the daily report.
+
+Portal UI: home page fetches `/status.json` for per-child status chips (red = disconnected, with "since" time); report pages inject a red banner when the child's session is not WORKING — skip the fetch on share pages (no auth there).
+
 ## Deep-dive escalation — community detection (ad hoc)
 
 When a flag needs NETWORK context — social pressure around an important event, a sudden DM from a group-only contact, exclusion dynamics, "who holds social power in this circle?" — escalate to the ad-hoc community-detection deep-dive. Methodology (edge-weight recipe, interpretation playbook): the `social-graph-community-detection` skill. Runners ship here: `scripts/social_graph_build.py` (hub-based graph builder) and `scripts/social_graph_leiden.py` (solver).
