@@ -123,6 +123,7 @@ Same look as the monthly standard report, but over one week (Sunday–Saturday).
 - **Share-page caveat** — cross-links to daily/monthly need auth; they carry `data-share-hide` and the shared JS hides them on `/s/` pages.
 - **Pipeline** — `weekly_all.sh [wk]` (default: the week that just ended) → collect cur+prev for all kids → render all → compact digest on stdout for the cron agent. WeasyPrint-less PDFs via headless Chromium, same as monthly.
 - **Exit codes** — pipeline scripts always exit 0; per-kid status travels in the digest. A non-zero exit makes the Hermes cron agent frame the whole run as "script failed" instead of reading the per-kid statuses (a stopped session's NO DATA is normal, not a failure).
+- **Family delivery (deployment add-on)** — after every successful render the deployment DMs that cycle's Yuval+Nadav links to a configured family recipient on WhatsApp (`weekly_to_einav.py <wk>` / `monthly_to_einav.py <YYYY-MM>`; monthly enabled from a floor month). Both refuse to send unless the target report file (`weekly.html` / `standard.html`) actually exists — a share token alone is not enough (daily publishing mints month-dir tokens before the monthly render exists) — and are idempotent via sent-logs (`data/weekly/einav-sent.json`, `data/monthly-sent.json`). Sends ride the bot line, so they need a rolling DM access grant (`chatlytics_grant_dm.py`; expires ≤720h) and the **`@c.us`** JID form for both grant and send.
 
 ## Deep-dive escalation — community detection (ad hoc)
 
