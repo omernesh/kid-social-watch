@@ -14,6 +14,7 @@ Every day (or on demand), the skill:
 6. Computes a per-member peer-comparison baseline for the monthly report (`scripts/member_stats.py`) — powers a "vs peers" card and rank-backed narrative claims
 7. Publishes each daily report to an optional hosted report site and appends a device line + deep link to the delivered report (`scripts/daily_publish.py`)
 8. Surfaces per-child phone/session connectivity (WORKING / STOPPED / missing) in reports and on the site dashboard (`scripts/device_status.py`; silent refresher example: `scripts/device_watch.sh`)
+9. Optionally renders a weekly report per child (Sunday–Saturday): windowed collect with week-over-week deltas, a 7-day strip, a per-day flags roll-up (verdict parsed from the daily archive), and a hosted page + PDF (SKILL.md Phase 9)
 
 Example header:
 

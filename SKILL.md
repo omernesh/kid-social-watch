@@ -32,7 +32,7 @@ This is a **template skill**: every value (child's name, session, JID, delivery 
 | `TZ` | `America/New_York` | Timezone for daily windows and trends |
 | `KID_WATCH_CONFIG` | `~/.hermes/kid-social-watch.json` | Optional — config for the hub-side tools (Phase 5 replies marker, Phase 6 monthly graph). Schema in `scripts/kid_replies_marker.py` docstring |
 
-## Pipeline (6 phases)
+## Pipeline
 
 ### Phase 1 — Pull today's messages
 ```
@@ -112,6 +112,16 @@ Daily prompt step (mandatory, in every child's daily job): save the composed rep
 Portal UI: home page fetches `/status.json` for per-child status chips (red = disconnected, with "since" time); report pages inject a red banner when the child's session is not WORKING — skip the fetch on share pages (no auth there).
 
 Runners ship here: `scripts/daily_publish.py`, `scripts/device_status.py`, `scripts/device_watch.sh` (generic; private values via the `KID_WATCH_CONFIG` file — `site_dir`, `site_domain`, `children[].session` + `children[].name`). Deployment keeps identical copies in `~/.hermes/scripts/` where the cron prompts invoke them.
+
+### Phase 9 — Weekly reports (portal add-on)
+
+Same look as the monthly standard report, but over one week (Sunday–Saturday). `<wk>` = the Sunday that starts the week (YYYY-MM-DD).
+
+- **Collection** — reuse the monthly engine with an explicit window: `monthly_collect.py <child> <wk> --from <sun> --to <sat> --label "שבוע …" --skip-graph --out data/weekly/<child>-<wk>.json`; also collect the previous week to `…-prev.json` for the WoW card. No weekly community graph (monthly keeps the graph).
+- **Render** — `weekly_render.py <child> <wk>` → `reports/<child>/weekly/<wk>/weekly.html` + `weekly.pdf`; updates `site/weekly.json` (home-page "דוחות שבועיים" strip) and mints a per-kid·week share token. Share pages allow `weekly.html` / `weekly.pdf`; PDF download name `kid-week-<wk>.pdf`.
+- **Page contents** — KPI row with WoW delta on the total; 7-day bar strip with every day labeled (bar click deep-links to that day's daily report via a `window.__WEEKLY__` branch in the shared JS); "מול השבוע שעבר" table; top DMs; groups table; a deterministic Hebrew summary paragraph (no LLM); and a 7-row flags roll-up — per-day verdict parsed from the daily archive texts, 🚩/✓ per day.
+- **Share-page caveat** — cross-links to daily/monthly need auth; they carry `data-share-hide` and the shared JS hides them on `/s/` pages.
+- **Pipeline** — `weekly_all.sh [wk]` (default: the week that just ended) → collect cur+prev for all kids → render all → compact digest on stdout for the cron agent. WeasyPrint-less PDFs via headless Chromium, same as monthly.
 
 ## Deep-dive escalation — community detection (ad hoc)
 
